@@ -81,7 +81,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ModelMapper (Entity <-> DTO) -->
+        <!-- ModelMapperConfig (Entity <-> DTO) -->
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
