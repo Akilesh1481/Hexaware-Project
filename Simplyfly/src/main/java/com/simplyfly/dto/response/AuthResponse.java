@@ -1,4 +1,10 @@
 package com.simplyfly.dto.response;
 
-public class AuthResponse {
+
+public record AuthResponse(
+     String token,
+     String email,
+     String role,
+     String fullName
+){
 }
