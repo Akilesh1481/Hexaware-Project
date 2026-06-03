@@ -27,145 +27,172 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http)
+            throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
 
+                                // ===== AUTH PUBLIC =====
+//                        .requestMatchers(HttpMethod.POST,
+//                                "/api/v1/auth/register").permitAll()
+//                        .requestMatchers(HttpMethod.POST,
+//                                "/api/v1/auth/login").permitAll()
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/auth/login").permitAll()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
 
+                                // ===== SWAGGER PUBLIC =====
+                                .requestMatchers(
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html",
+                                        "/api-docs/**",
+                                        "/v3/api-docs/**").permitAll()
 
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/api-docs/**",
-                                "/v3/api-docs/**").permitAll()
+                                // ===== AIRPORT =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/airports").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/airports").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/airports/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/airports/code/{code}").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/airports/search").permitAll()
+                                .requestMatchers(HttpMethod.PUT,
+                                        "/api/v1/airports/{id}").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE,
+                                        "/api/v1/airports/{id}").hasAuthority("ADMIN")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/airports").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/airports").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/airports/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/airports/code/{code}").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/airports/search").permitAll()
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/v1/airports/{id}").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/v1/airports/{id}").hasAuthority("ADMIN")
+                                // ===== FLIGHT =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/flights").hasAuthority("OWNER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/flights").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/flights/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/flights/search").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/flights/owner/{ownerId}")
+                                .hasAuthority("OWNER")
+                                .requestMatchers(HttpMethod.PUT,
+                                        "/api/v1/flights/{id}").hasAuthority("OWNER")
+                                .requestMatchers(HttpMethod.PATCH,
+                                        "/api/v1/flights/{id}/status")
+                                .hasAnyAuthority("OWNER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE,
+                                        "/api/v1/flights/{id}")
+                                .hasAnyAuthority("OWNER", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/flights").hasAuthority("OWNER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/flights").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/flights/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/flights/search").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/flights/owner/{ownerId}").hasAuthority("OWNER")
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/v1/flights/{id}").hasAuthority("OWNER")
-                        .requestMatchers(HttpMethod.PATCH,
-                                "/api/v1/flights/{id}/status").hasAnyAuthority("OWNER","ADMIN")
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/v1/flights/{id}").hasAnyAuthority("OWNER","ADMIN")
+                                // ===== USER =====
+                                .requestMatchers(HttpMethod.GET,"/api/v1/users")
+                                .hasAnyAuthority("ADMIN","OWNER")
 
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/users").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/users/active").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/users/{id}").hasAnyAuthority("ADMIN","USER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/users/search").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/v1/users/{id}").hasAnyAuthority("ADMIN","USER")
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/v1/users/{id}").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.GET,"/api/v1/users/active")
+                                .hasAnyAuthority("ADMIN","OWNER")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/seats").hasAnyAuthority("OWNER","ADMIN")
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/seats/flight/{flightId}/generate/{totalSeats}")
-                        .hasAnyAuthority("OWNER","ADMIN")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/seats").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/seats/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/seats/flight/{flightId}").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/seats/flight/{flightId}/available").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/seats/flight/{flightId}/booked")
-                        .hasAnyAuthority("OWNER","ADMIN")
-                        .requestMatchers(HttpMethod.PATCH,
-                                "/api/v1/seats/{id}/status")
-                        .hasAnyAuthority("OWNER","ADMIN")
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/v1/seats/{id}").hasAnyAuthority("OWNER","ADMIN")
+                                .requestMatchers(HttpMethod.GET,"/api/v1/users/search")
+                                .hasAnyAuthority("ADMIN","OWNER")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/passengers").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/passengers/booking/{bookingId}")
-                        .hasAnyAuthority("USER","ADMIN","OWNER")
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/v1/passengers/{id}").hasAnyAuthority("USER","ADMIN")
+                                .requestMatchers(HttpMethod.GET,"/api/v1/users/{id}")
+                                .hasAnyAuthority("ADMIN","OWNER","USER")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/bookings").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/bookings").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/bookings/{id}")
-                        .hasAnyAuthority("USER","ADMIN","OWNER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/bookings/user/{userId}")
-                        .hasAnyAuthority("USER","ADMIN")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/bookings/flight/{flightId}")
-                        .hasAnyAuthority("OWNER","ADMIN")
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/v1/bookings/{id}/cancel")
-                        .hasAnyAuthority("USER","ADMIN")
+                                .requestMatchers(HttpMethod.PUT,"/api/v1/users/{id}")
+                                .hasAnyAuthority("ADMIN","USER")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/payments").hasAuthority("USER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/payments/booking/{bookingId}")
-                        .hasAnyAuthority("USER","ADMIN","OWNER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/payments").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE,"/api/v1/users/{id}")
+                                .hasAuthority("ADMIN")
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/refunds/{bookingId}").hasAuthority("OWNER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/refunds/{bookingId}")
-                        .hasAnyAuthority("USER","ADMIN","OWNER")
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/refunds").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/v1/refunds/{id}/process").hasAuthority("OWNER")
+                                // ===== SEAT =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/seats")
+                                .hasAnyAuthority("OWNER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/seats/flight/{flightId}/generate/{totalSeats}")
+                                .hasAnyAuthority("OWNER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/seats").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/seats/{id}").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/seats/flight/{flightId}").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/seats/flight/{flightId}/available")
+                                .permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/seats/flight/{flightId}/booked")
+                                .hasAnyAuthority("OWNER", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH,
+                                        "/api/v1/seats/{id}/status")
+                                .hasAnyAuthority("OWNER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE,
+                                        "/api/v1/seats/{id}")
+                                .hasAnyAuthority("OWNER", "ADMIN")
 
-                        // ========== ADMIN ==========
-                        .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
+                                // ===== PASSENGER =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/passengers").hasAuthority("USER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/passengers/booking/{bookingId}")
+                                .hasAnyAuthority("USER", "ADMIN", "OWNER")
+                                .requestMatchers(HttpMethod.DELETE,
+                                        "/api/v1/passengers/{id}")
+                                .hasAnyAuthority("USER", "ADMIN")
 
-                        .anyRequest().authenticated()
+                                // ===== BOOKING =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/bookings").hasAuthority("USER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/bookings").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/bookings/{id}")
+                                .hasAnyAuthority("USER", "ADMIN", "OWNER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/bookings/user/{userId}")
+                                .hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/bookings/flight/{flightId}")
+                                .hasAnyAuthority("OWNER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT,
+                                        "/api/v1/bookings/{id}/cancel")
+                                .hasAnyAuthority("USER", "ADMIN")
+
+                                // ===== PAYMENT =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/payments").hasAuthority("USER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/payments/booking/{bookingId}")
+                                .hasAnyAuthority("USER", "ADMIN", "OWNER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/payments").hasAuthority("ADMIN")
+
+                                // ===== REFUND =====
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/refunds/{bookingId}")
+                                .hasAnyAuthority("OWNER","ADMIN")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/refunds/{bookingId}")
+                                .hasAnyAuthority("USER", "ADMIN", "OWNER")
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/refunds").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.PUT,
+                                        "/api/v1/refunds/{id}/process")
+                                .hasAuthority("OWNER")
+
+                                // ===== ADMIN =====
+                                .requestMatchers("/api/v1/admin/**")
+                                .hasAuthority("ADMIN")
+
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+                        UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

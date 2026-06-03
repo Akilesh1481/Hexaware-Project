@@ -16,9 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
-@Configuration
-@AllArgsConstructor
 @Component
+@AllArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtility jwtUtility;
@@ -29,8 +28,15 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        String path=request.getServletPath();
 
-        final String authorizationHeader = request.getHeader("Authorization");
+        if(path.startsWith("/api/v1/auth/")){
+            filterChain.doFilter(request,response);
+            return;
+        }
+
+        final String authorizationHeader =
+                request.getHeader("Authorization");
         String username = null;
         String jwt = null;
 
@@ -44,24 +50,33 @@ public class JwtFilter extends OncePerRequestFilter {
             if (username != null
                     && SecurityContextHolder.getContext()
                     .getAuthentication() == null) {
+
                 UserDetails userDetails = userDetailsService
                         .loadUserByUsername(username);
-                if (jwtUtility.validateToken(jwt, userDetails.getUsername())) {
+
+                if (jwtUtility.validateToken(
+                        jwt, userDetails.getUsername())) {
+
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
                                     userDetails.getAuthorities());
+
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource()
                                     .buildDetails(request));
+
                     SecurityContextHolder.getContext()
                             .setAuthentication(authToken);
                 }
             }
             filterChain.doFilter(request, response);
+
         } catch (Exception e) {
-            throw new RuntimeException("Token not found or invalid..");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid or expired token");
+            return;
         }
     }
 }

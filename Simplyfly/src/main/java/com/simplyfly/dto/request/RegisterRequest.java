@@ -19,7 +19,7 @@ public record RegisterRequest(
 
         String phone,
 
-        @Enumerated(EnumType.STRING)
+        @NotNull(message = "Role is required")
         Role role
 )  {
 
